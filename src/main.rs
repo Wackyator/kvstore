@@ -41,6 +41,7 @@ rm <key>: remove a key from db [case sensitive]
 
 struct Database {
     map: HashMap<String, String>,
+    path: PathBuf,
 }
 
 impl Database {
@@ -50,7 +51,7 @@ impl Database {
         let path = PathBuf::from(path);
 
         if path.is_file() {
-            let contents = fs::read_to_string(path)?;
+            let contents = fs::read_to_string(path.clone())?;
  
             for line in contents.lines() {
                 let mut chunks = line.splitn(2, '\t');
@@ -60,10 +61,10 @@ impl Database {
                 map.insert(k.to_owned(), v.to_owned());
             }
         } else {
-            File::create(path)?;
+            File::create(path.clone())?;
         }
 
-        Ok(Self { map })
+        Ok(Self { map, path })
     }
 }
 
@@ -92,6 +93,6 @@ impl Drop for Database {
             contents.push('\n');
         }
 
-        fs::write("kv.db", contents).expect("Failed to write to db");
+        fs::write(self.path.clone(), contents).expect("Failed to write to db");
     }
 }
